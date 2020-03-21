@@ -56,13 +56,14 @@ defmodule SeaLiveWorldWeb.Live.Game do
       penguin_y: 1,
       whale_x: 15,
       whale_y: 10,
-      counter: 0
+      penguin_counter: 0,
+      whale_counter: 0
     )
   end
 
   @default_width 15
   @default_height 10
-  @difficulty 11
+  @difficulty 12
   def board() do
     for x <- 1..@default_width, y <- 1..@default_height, into: %{} do
       [random] = Enum.take_random(Enum.to_list(1..@difficulty), 1)
@@ -74,6 +75,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   defp field_type(random) do
     case random do
       1 -> :occ
+      4 -> :whale
       _ -> :free
     end
   end
@@ -92,7 +94,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
           penguin_x: x,
           penguin_y: y,
           penguin_direction: direction,
-          counter: counter
+          penguin_counter: counter
         )
 
       _ ->
@@ -101,7 +103,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   end
 
   defp third_step(socket) do
-    if socket.assigns.counter >= 3, do: 0, else: socket.assigns.counter + 1
+    if socket.assigns.penguin_counter >= 3, do: 0, else: socket.assigns.penguin_counter + 1
   end
 
   defp add_penguin(socket, counter, coordinates) do
@@ -124,24 +126,45 @@ defmodule SeaLiveWorldWeb.Live.Game do
     {{x, y} = coordinates, direction} = get_new_whale_position(socket, step)
 
     case Map.get(socket.assigns.board, coordinates) do
-      :occ ->
+      res when res in [:whale, :eatpenguin] ->
         socket
 
       _ ->
-        board = eat_penguin(socket, coordinates)
+        counter = eight_step(socket)
+        board = eat_penguin(socket, counter, coordinates)
 
         assign(socket,
           board: board,
           whale_x: x,
           whale_y: y,
-          whale_direction: direction
+          whale_direction: direction,
+          whale_counter: counter
         )
     end
   end
 
-  defp eat_penguin(socket, coordinates) do
+  defp eight_step(socket) do
+    if socket.assigns.whale_counter >= 8, do: 0, else: socket.assigns.whale_counter + 1
+  end
+
+  defp add_whale(socket, counter, coordinates) do
+    cond do
+      counter == 8 ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
+          end)
+
+        new_board
+
+      true ->
+        socket.assigns.board
+    end
+  end
+
+  defp eat_penguin(socket, counter, coordinates) do
     case Map.get(socket.assigns.board, coordinates) do
-      :penguin ->
+      res when res in [:penguin, :occ] ->
         {_value, new_board} =
           Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
             {current_value, :eatpenguin}
@@ -150,13 +173,13 @@ defmodule SeaLiveWorldWeb.Live.Game do
         new_board
 
       _ ->
-        socket.assigns.board
+        add_whale(socket, counter, coordinates)
     end
   end
 
   defp get_new_whale_position(socket, %{"key" => step} = keys) do
     {x_old, y_old} = {socket.assigns.whale_x, socket.assigns.whale_y}
-    old_direction = socket.assigns.penguin_direction
+    old_direction = socket.assigns.whale_direction
 
     {{x, y}, direction} =
       case step do

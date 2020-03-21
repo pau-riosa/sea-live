@@ -10,18 +10,22 @@ h1 {
   border: .5px solid 	rgb(211,211,211);
 }
 
-.occ {background-image:url('/images/ice-berg.jpeg');}
 .free {background-color: rgb(127,229,242);}
-.eatpenguin {background-color:  rgb(127,229,242)}
+.eatpenguin {background-color: rgb(255, 0, 0); background-image:url('/images/yummy.png');}
 
-.penguin {background-image:url('/images/penguin-baby.png'); background-color:  rgb(127,229,242)}
-.penguinup {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
-.penguindown {background-image:url('/images/penguin.png');  background-color:  rgb(127,229,242)}
-.penguinright {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
+.occ,
+.penguin
+{background-image:url('/images/penguin-baby.jpg'); background-color:  rgb(127,229,242)}
+
+.penguinup,
+.penguindown,
+.penguinright,
 .penguinleft {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
 
 
-.whaleup {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
-.whaledown {background-image:url('/images/whale.png');  background-color:  rgb(127,229,242)}
-.whaleright {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
-.whaleleft {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
+.whale
+{background-image:url('/images/whale.jpg'); background-size: cover ; background-color:  rgb(127,229,242)}
+.whaledown,
+.whaleleft,
+.whaleright,
+.whaleup {background-image:url('/images/whale.png'); background-size: cover ; background-color:  rgb(127,229,242)}
