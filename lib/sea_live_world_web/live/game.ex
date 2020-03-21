@@ -42,17 +42,22 @@ defmodule SeaLiveWorldWeb.Live.Game do
       board: board(),
       field_size: 50,
       gameplay?: true,
-      direction: :penguindown,
+      penguin_direction: :penguindown,
+      whale_direction: :whaledown,
       penguin_x: 1,
-      penguin_y: 1
+      penguin_y: 1,
+      whale_x: 1,
+      whale_y: 1,
+      counter: 0
     )
   end
 
   @default_width 15
   @default_height 10
+  @difficulty 11
   def board() do
     for x <- 1..@default_width, y <- 1..@default_height, into: %{} do
-      [random] = Enum.take_random(Enum.to_list(0..1), 1)
+      [random] = Enum.take_random(Enum.to_list(1..@difficulty), 1)
       type = field_type(random)
       {{x, y}, type}
     end
@@ -60,29 +65,55 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
   defp field_type(random) do
     case random do
-      1 -> :occupied
+      1 -> :occ
       _ -> :free
     end
   end
 
   defp step(socket, step) do
     old_position = {socket.assigns.penguin_x, socket.assigns.penguin_y}
+    {{x, y} = coordinates, direction} = get_new_position(socket, step)
 
-    {{x, y}, direction} = get_new_position(socket, step)
+    case Map.get(socket.assigns.board, coordinates) do
+      :free ->
+        counter = third_step(socket)
+        board = add_penguin(socket, counter, coordinates)
 
-    new_score = Map.get(socket.assigns.board, {x, y})
+        assign(socket,
+          board: board,
+          penguin_x: x,
+          penguin_y: y,
+          penguin_direction: direction,
+          counter: counter
+        )
 
-    assign(socket,
-      board: Map.put(socket.assigns.board, old_position, :free),
-      penguin_x: x,
-      penguin_y: y,
-      direction: direction
-    )
+      _ ->
+        socket
+    end
+  end
+
+  defp third_step(socket) do
+    if socket.assigns.counter >= 3, do: 0, else: socket.assigns.counter + 1
+  end
+
+  defp add_penguin(socket, counter, coordinates) do
+    cond do
+      counter == 3 ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            {current_value, :penguin}
+          end)
+
+        new_board
+
+      true ->
+        socket.assigns.board
+    end
   end
 
   defp get_new_position(socket, %{"key" => step} = keys) do
     {x_old, y_old} = {socket.assigns.penguin_x, socket.assigns.penguin_y}
-    old_direction = socket.assigns.direction
+    old_direction = socket.assigns.penguin_direction
 
     {{x, y}, direction} =
       case step do

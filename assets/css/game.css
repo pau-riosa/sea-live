@@ -10,7 +10,10 @@ h1 {
   border: .5px solid 	rgb(211,211,211);
 }
 
-.penguinup {background-image:url('/images/hippo-up.png');}
-.penguindown {background-image:url('/images/hippo-down.png'); }
-.penguinright {background-image:url('/images/hippo-right.png');}
-.penguinleft {background-image:url('/images/hippo-left.png');}
+.occ {background-image:url('/images/ice-berg.jpeg');}
+.free {background-color: rgb(127,229,242);}
+.penguin {background-image:url('/images/bonus1.png'); background-color:  rgb(127,229,242)}
+.penguinup {background-image:url('/images/hippo-up.png'); background-color:  rgb(127,229,242)}
+.penguindown {background-image:url('/images/hippo-down.png');  background-color:  rgb(127,229,242)}
+.penguinright {background-image:url('/images/hippo-right.png'); background-color:  rgb(127,229,242)}
+.penguinleft {background-image:url('/images/hippo-left.png'); background-color:  rgb(127,229,242)}

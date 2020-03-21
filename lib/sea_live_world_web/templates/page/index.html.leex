@@ -4,11 +4,12 @@
     <div class="board">
       <%= for {{x,y}, type} <- @board do %>
         <div class="field <%= type %>" style="left: <%= x * @field_size %>px; top: <%= y * @field_size %>px;">
+
         </div>
       <% end %>
     </div>
   </div>
 </div>
-<div class="field <%= @direction %>"  phx-window-keydown="player"
+<div class="field <%= @penguin_direction %>"  phx-window-keydown="player"
                                       style="left: <%= @penguin_x * @field_size%>px; top: <%= @penguin_y * @field_size %>px;">
 </div>
