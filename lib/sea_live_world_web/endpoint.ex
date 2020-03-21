@@ -7,7 +7,7 @@ defmodule SeaLiveWorldWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_sea_live_world_key",
-    signing_salt: "vuOhtI2a"
+    signing_salt: "lTBUSp8rWmmcAQ/KrMfMCRFqcBw2bbiI"
   ]
 
   socket "/socket", SeaLiveWorldWeb.UserSocket,

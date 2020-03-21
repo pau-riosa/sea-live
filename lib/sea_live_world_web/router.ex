@@ -19,6 +19,10 @@ defmodule SeaLiveWorldWeb.Router do
     get "/", PageController, :index
   end
 
+  scope "/", SeaLiveWorldWeb.Live do
+    live "/game", Game
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", SeaLiveWorldWeb do
   #   pipe_through :api

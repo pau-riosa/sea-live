@@ -16,7 +16,7 @@ config :sea_live_world, SeaLiveWorldWeb.Endpoint,
   secret_key_base: "c9qrBWCXoh0fWJitOEX+4vzh8l4XqpdSksU3cLCO23j02MwMV/WbupjhhQVNrCcC",
   render_errors: [view: SeaLiveWorldWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: SeaLiveWorld.PubSub, adapter: Phoenix.PubSub.PG2],
-  live_view: [signing_salt: "ry8w/OcE"]
+  live_view: [signing_salt: "lTBUSp8rWmmcAQ/KrMfMCRFqcBw2bbiI"]
 
 # Configures Elixir's Logger
 config :logger, :console,
