@@ -20,9 +20,17 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  def handle_event("player", key, socket) do
+  def handle_event("penguin", key, socket) do
     if socket.assigns.gameplay? do
-      {:noreply, step(socket, key)}
+      {:noreply, penguin_step(socket, key)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("whale", key, socket) do
+    if socket.assigns.gameplay? do
+      {:noreply, whale_step(socket, key)}
     else
       {:noreply, socket}
     end
@@ -46,8 +54,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
       whale_direction: :whaledown,
       penguin_x: 1,
       penguin_y: 1,
-      whale_x: 1,
-      whale_y: 1,
+      whale_x: 15,
+      whale_y: 10,
       counter: 0
     )
   end
@@ -70,7 +78,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  defp step(socket, step) do
+  defp penguin_step(socket, step) do
     old_position = {socket.assigns.penguin_x, socket.assigns.penguin_y}
     {{x, y} = coordinates, direction} = get_new_position(socket, step)
 
@@ -109,6 +117,65 @@ defmodule SeaLiveWorldWeb.Live.Game do
       true ->
         socket.assigns.board
     end
+  end
+
+  defp whale_step(socket, step) do
+    old_position = {socket.assigns.penguin_x, socket.assigns.penguin_y}
+    {{x, y} = coordinates, direction} = get_new_whale_position(socket, step)
+
+    case Map.get(socket.assigns.board, coordinates) do
+      :occ ->
+        socket
+
+      _ ->
+        board = eat_penguin(socket, coordinates)
+
+        assign(socket,
+          board: board,
+          whale_x: x,
+          whale_y: y,
+          penguin_direction: direction,
+          type: :eatpenguin
+        )
+    end
+  end
+
+  defp eat_penguin(socket, coordinates) do
+    case Map.get(socket.assigns.board, coordinates) do
+      :penguin ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            {current_value, :eatpenguin}
+          end)
+
+        new_board
+
+      _ ->
+        socket.assigns.board
+    end
+  end
+
+  defp get_new_whale_position(socket, %{"key" => step} = keys) do
+    {x_old, y_old} = {socket.assigns.whale_x, socket.assigns.whale_y}
+    old_direction = socket.assigns.penguin_direction
+
+    {{x, y}, direction} =
+      case step do
+        "ArrowLeft" -> {{x_old - 1, y_old}, :penguinleft}
+        "ArrowRight" -> {{x_old + 1, y_old}, :penguinright}
+        "ArrowUp" -> {{x_old, y_old - 1}, :penguinup}
+        "ArrowDown" -> {{x_old, y_old + 1}, :penguindown}
+        _ -> {{x_old, y_old}, old_direction}
+      end
+
+    {x, y} =
+      if x in 1..@default_width and y in 1..@default_height do
+        {x, y}
+      else
+        {x_old, y_old}
+      end
+
+    {{x, y}, direction}
   end
 
   defp get_new_position(socket, %{"key" => step} = keys) do
