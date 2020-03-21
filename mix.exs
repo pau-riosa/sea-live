@@ -33,6 +33,8 @@ defmodule SeaLiveWorld.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view"},
+      {:floki, ">= 0.0.0", only: :test},
       {:phoenix, "~> 1.4.16"},
       {:phoenix_pubsub, "~> 1.1"},
       {:phoenix_ecto, "~> 4.0"},
