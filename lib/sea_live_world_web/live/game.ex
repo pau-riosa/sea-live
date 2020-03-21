@@ -134,8 +134,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
           board: board,
           whale_x: x,
           whale_y: y,
-          penguin_direction: direction,
-          type: :eatpenguin
+          whale_direction: direction
         )
     end
   end
@@ -161,10 +160,10 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
     {{x, y}, direction} =
       case step do
-        "ArrowLeft" -> {{x_old - 1, y_old}, :penguinleft}
-        "ArrowRight" -> {{x_old + 1, y_old}, :penguinright}
-        "ArrowUp" -> {{x_old, y_old - 1}, :penguinup}
-        "ArrowDown" -> {{x_old, y_old + 1}, :penguindown}
+        "ArrowLeft" -> {{x_old - 1, y_old}, :whaleleft}
+        "ArrowRight" -> {{x_old + 1, y_old}, :whaleright}
+        "ArrowUp" -> {{x_old, y_old - 1}, :whaleup}
+        "ArrowDown" -> {{x_old, y_old + 1}, :whaledown}
         _ -> {{x_old, y_old}, old_direction}
       end
 

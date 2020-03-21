@@ -13,8 +13,15 @@ h1 {
 .occ {background-image:url('/images/ice-berg.jpeg');}
 .free {background-color: rgb(127,229,242);}
 .eatpenguin {background-color:  rgb(127,229,242)}
+
 .penguin {background-image:url('/images/penguin-baby.png'); background-color:  rgb(127,229,242)}
 .penguinup {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
 .penguindown {background-image:url('/images/penguin.png');  background-color:  rgb(127,229,242)}
 .penguinright {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
 .penguinleft {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
+
+
+.whaleup {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
+.whaledown {background-image:url('/images/whale.png');  background-color:  rgb(127,229,242)}
+.whaleright {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
+.whaleleft {background-image:url('/images/whale.png'); background-color:  rgb(127,229,242)}
