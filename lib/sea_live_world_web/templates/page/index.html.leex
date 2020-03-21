@@ -1,3 +1,12 @@
+<% left =  @whale_x * @field_size %>
+<% top =  @whale_y * @field_size %>
+<% style = if !@die_whale?, do: "
+background-image:url('/images/whale.png'); background-size: cover ; background-color:  rgb(127,229,242);
+",
+else: "
+background-color: rgb(127,229,242);
+"
+%>
 <h1>Sea Live View Game</h1>
 <div class="row">
   <div class="column"style="background-color: blue;">
@@ -13,5 +22,10 @@
                                       style="left: <%= @penguin_x * @field_size%>px; top: <%= @penguin_y * @field_size %>px;">
 </div>
 <div class="field <%= @whale_direction %>"  phx-window-keydown="whale"
-                                      style="left: <%= @whale_x * @field_size%>px; top: <%= @whale_y * @field_size %>px;">
+                                            style="
+                                            <%= style %>
+                                            left: <%= left %>px;
+                                            top: <%= top %>px;
+"
+                                            >
 </div>

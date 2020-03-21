@@ -1,3 +1,7 @@
+/* Credits to for the icons
+ * https://www.vectorstock.com/
+ * */
+
 h1 {
  text-align: center;
 }
@@ -10,6 +14,7 @@ h1 {
   border: .5px solid 	rgb(211,211,211);
 }
 
+.die_whale,
 .free {background-color: rgb(127,229,242);}
 .eatpenguin {background-color: rgb(255, 0, 0); background-image:url('/images/yummy.png');}
 
@@ -22,10 +27,5 @@ h1 {
 .penguinright,
 .penguinleft {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
 
-
 .whale
 {background-image:url('/images/whale.jpg'); background-size: cover ; background-color:  rgb(127,229,242)}
-.whaledown,
-.whaleleft,
-.whaleright,
-.whaleup {background-image:url('/images/whale.png'); background-size: cover ; background-color:  rgb(127,229,242)}
