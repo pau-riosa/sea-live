@@ -1,4 +1,7 @@
 defmodule SeaLiveWorldWeb.Live.Game do
+  @moduledoc """
+  Sea World: a phoenix liveview game inspired by hippo_game_live by medallini
+  """
   use Phoenix.LiveView
 
   alias SeaLiveWorldWeb.PageView
@@ -8,11 +11,17 @@ defmodule SeaLiveWorldWeb.Live.Game do
   @difficulty 12
   @characters ["penguin", "whale"]
 
+  @doc """
+  render game page
+  """
   def render(assigns) do
     PageView.render("game.html", assigns)
   end
 
-  def mount(_params, assigns, socket) do
+  @doc """
+  mount new game
+  """
+  def mount(_params, _assigns, socket) do
     socket =
       socket
       |> new_game()
@@ -24,33 +33,40 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  def handle_event("penguin", %{"key" => step} = key, socket) when step in ["r", "R"],
+  @doc """
+  restarts game
+  """
+  def handle_event("penguin", %{"key" => step}, socket) when step in ["r", "R"],
     do: do_restart(socket)
 
-  def handle_event("whale", %{"key" => step} = key, socket) when step in ["r", "R"],
+  def handle_event("whale", %{"key" => step}, socket) when step in ["r", "R"],
     do: do_restart(socket)
 
-  def handle_event("restart", key, socket), do: do_restart(socket)
+  def handle_event("restart", _key, socket), do: do_restart(socket)
 
+  @doc """
+  penguin take turns
+  """
   def handle_event("penguin", key, %{assigns: %{character: "penguin"}} = socket),
-    do: {:noreply, penguin_step(socket, key)}
+    do: {:noreply, step(:penguin, socket, key)}
 
-  def handle_event("penguin", key, socket), do: {:noreply, socket}
+  def handle_event("penguin", _key, socket), do: {:noreply, socket}
 
+  @doc """
+  whale take turns
+  """
   def handle_event("whale", key, %{assigns: %{character: "whale"}} = socket),
-    do: {:noreply, whale_step(socket, key)}
+    do: {:noreply, step(:whale, socket, key)}
 
-  def handle_event("whale", key, socket), do: {:noreply, socket}
+  def handle_event("whale", _key, socket), do: {:noreply, socket}
 
   def handle_info(:tick, socket) do
     {:noreply, socket}
   end
 
-  defp schedule_tick(socket) do
-    Process.send_after(self(), :tick, 1000)
-    socket
-  end
-
+  @doc """
+  new game
+  """
   def new_game(socket) do
     assign(socket,
       board: board(),
@@ -71,6 +87,16 @@ defmodule SeaLiveWorldWeb.Live.Game do
     )
   end
 
+  @doc """
+  creates the dimension of the board base from
+  width and height
+
+  and assign each field as
+  occ -> occupied by penguin
+  penguin -> occupied by penguin
+  whale -> occupied by whale
+  free -> space for each character
+  """
   def board() do
     for x <- 1..@default_width, y <- 1..@default_height, into: %{} do
       [random] = Enum.take_random(Enum.to_list(1..@difficulty), 1)
@@ -79,110 +105,106 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  defp field_type(random) do
-    case random do
-      1 -> :occ
-      2 -> :penguin
-      3 -> :whale
-      _ -> :free
-    end
+  @doc """
+  steps to make by penguin/whale in each turn
+  """
+  def step(character, socket, step) do
+    {coordinates, direction} = get_new_position(character, socket, step)
+    do_step(character, socket, coordinates, direction, Map.get(socket.assigns.board, coordinates))
   end
 
-  defp penguin_step(socket, step) do
-    old_position = {socket.assigns.penguin_x, socket.assigns.penguin_y}
-    {{x, y} = coordinates, direction} = get_new_position(socket, step)
+  defp do_step(:penguin, socket, {x, y} = coordinates, direction, :free) do
+    counter = third_step(socket)
+    board = add_penguin(socket, counter, coordinates)
 
-    case Map.get(socket.assigns.board, coordinates) do
-      :free ->
-        counter = third_step(socket)
-        board = add_penguin(socket, counter, coordinates)
-
-        assign(socket,
-          board: board,
-          penguin_x: x,
-          penguin_y: y,
-          penguin_direction: direction,
-          penguin_counter: counter,
-          character: "whale"
-        )
-
-      _ ->
-        socket
-    end
+    assign(socket,
+      board: board,
+      penguin_x: x,
+      penguin_y: y,
+      penguin_direction: direction,
+      penguin_counter: counter,
+      character: "whale"
+    )
   end
 
-  defp third_step(socket) do
-    if socket.assigns.penguin_counter >= 3, do: 0, else: socket.assigns.penguin_counter + 1
+  defp do_step(:penguin, socket, _coordinates, _direction, _result), do: socket
+
+  defp do_step(:whale, socket, _coordinates, _direction, result)
+       when result in [:whale, :eatpenguin],
+       do: socket
+
+  defp do_step(:whale, socket, {x, y} = coordinates, direction, _result) do
+    counter = eight_step(socket)
+    board = eat_penguin(socket, counter, coordinates)
+    die_counter = die_step(socket)
+    whale_eats? = whale_eats?(socket, die_counter, coordinates)
+    die_whale? = die_whale?(whale_eats?, die_counter)
+
+    assign(socket,
+      board: board,
+      whale_x: x,
+      whale_y: y,
+      whale_direction: direction,
+      whale_counter: counter,
+      die_counter: die_counter,
+      die_whale?: die_whale?,
+      whale_eats?: whale_eats?,
+      character: "penguin"
+    )
   end
 
-  defp add_penguin(socket, counter, coordinates) do
-    cond do
-      counter == 3 ->
-        {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            {current_value, :penguin}
-          end)
-
-        new_board
-
-      true ->
-        socket.assigns.board
-    end
+  defp get_new_position(
+         :penguin,
+         %{
+           assigns: %{
+             penguin_x: x_old,
+             penguin_y: y_old,
+             penguin_direction: old_direction
+           }
+         } = _socket,
+         %{"key" => step} = _keys
+       ) do
+    params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
+    do_get_new_position(arrow_keys(params, "penguin"))
   end
 
-  defp get_new_position(socket, %{"key" => step} = keys) do
-    {x_old, y_old} = {socket.assigns.penguin_x, socket.assigns.penguin_y}
-    old_direction = socket.assigns.penguin_direction
-
-    {{x, y}, direction} =
-      case step do
-        "ArrowLeft" -> {{x_old - 1, y_old}, :penguinleft}
-        "ArrowRight" -> {{x_old + 1, y_old}, :penguinright}
-        "ArrowUp" -> {{x_old, y_old - 1}, :penguinup}
-        "ArrowDown" -> {{x_old, y_old + 1}, :penguindown}
-        _ -> {{x_old, y_old}, old_direction}
-      end
-
-    {x, y} =
-      if x in 1..@default_width and y in 1..@default_height do
-        {x, y}
-      else
-        {x_old, y_old}
-      end
-
-    {{x, y}, direction}
+  defp get_new_position(
+         :whale,
+         %{
+           assigns: %{
+             whale_x: x_old,
+             whale_y: y_old,
+             whale_direction: old_direction
+           }
+         } = _socket,
+         %{"key" => step} = _keys
+       ) do
+    params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
+    do_get_new_position(arrow_keys(params, "whale"))
   end
 
-  defp whale_step(socket, step) do
-    old_position = {socket.assigns.penguin_x, socket.assigns.penguin_y}
-    {{x, y} = coordinates, direction} = get_new_whale_position(socket, step)
+  defp do_get_new_position({x, y})
+       when x in 1..@default_width and y in 1..@default_height,
+       do: {x, y}
 
-    case Map.get(socket.assigns.board, coordinates) do
-      res when res in [:whale, :eatpenguin] ->
-        socket
+  defp do_get_new_position(old_direction), do: old_direction
 
-      _ ->
-        counter = eight_step(socket)
-        board = eat_penguin(socket, counter, coordinates)
-        die_counter = die_step(socket)
-        whale_eats? = whale_eats?(socket, die_counter, coordinates)
-        die_whale? = die_whale?(socket, whale_eats?, die_counter)
+  defp arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
+    do: {{x_old - 1, y_old}, "#{type}left"}
 
-        assign(socket,
-          board: board,
-          whale_x: x,
-          whale_y: y,
-          whale_direction: direction,
-          whale_counter: counter,
-          die_counter: die_counter,
-          die_whale?: die_whale?,
-          whale_eats?: whale_eats?,
-          character: "penguin"
-        )
-    end
-  end
+  defp arrow_keys(%{step: "ArrowRight", x_old: x_old, y_old: y_old} = _params, type),
+    do: {{x_old + 1, y_old}, "#{type}right"}
 
-  defp die_whale?(socket, whale_eats?, counter) do
+  defp arrow_keys(%{step: "ArrowUp", x_old: x_old, y_old: y_old} = _params, type),
+    do: {{x_old, y_old - 1}, "#{type}up"}
+
+  defp arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
+    do: {{x_old, y_old + 1}, "#{type}down"}
+
+  defp arrow_keys(%{x_old: x_old, y_old: y_old, old_direction: old_direction} = _params, _type),
+    do: {{x_old, y_old}, old_direction}
+
+  defp die_whale?(whale_eats?, counter) do
     cond do
       counter >= 3 && !whale_eats? ->
         true
@@ -208,8 +230,27 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
+  defp third_step(socket) do
+    if socket.assigns.penguin_counter >= 3, do: 0, else: socket.assigns.penguin_counter + 1
+  end
+
   defp eight_step(socket) do
     if socket.assigns.whale_counter >= 8, do: 0, else: socket.assigns.whale_counter + 1
+  end
+
+  defp add_penguin(socket, counter, coordinates) do
+    cond do
+      counter == 3 ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            {current_value, :penguin}
+          end)
+
+        new_board
+
+      true ->
+        socket.assigns.board
+    end
   end
 
   defp add_whale(socket, counter, coordinates) do
@@ -252,41 +293,26 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  defp get_new_whale_position(
-         %{assigns: %{die_whale?: die_whale?}} = socket,
-         %{"key" => step} = keys
-       ) do
-    {x_old, y_old} = {socket.assigns.whale_x, socket.assigns.whale_y}
-    old_direction = socket.assigns.whale_direction
-
-    {{x, y}, direction} =
-      if die_whale? do
-        {{x_old, y_old}, old_direction}
-      else
-        case step do
-          "ArrowLeft" -> {{x_old - 1, y_old}, :whaleleft}
-          "ArrowRight" -> {{x_old + 1, y_old}, :whaleright}
-          "ArrowUp" -> {{x_old, y_old - 1}, :whaleup}
-          "ArrowDown" -> {{x_old, y_old + 1}, :whaledown}
-          _ -> {{x_old, y_old}, old_direction}
-        end
-      end
-
-    {x, y} =
-      if x in 1..@default_width and y in 1..@default_height do
-        {x, y}
-      else
-        {x_old, y_old}
-      end
-
-    {{x, y}, direction}
-  end
-
   defp select_character(characters) do
     Enum.take_random(characters, 1) |> List.first()
   end
 
   defp do_restart(socket) do
     {:noreply, schedule_tick(new_game(socket))}
+  end
+
+  defp schedule_tick(socket) do
+    Process.send_after(self(), :tick, 1000)
+    socket
+  end
+
+  # assigns field type
+  defp field_type(random) do
+    case random do
+      1 -> :occ
+      2 -> :penguin
+      3 -> :whale
+      _ -> :free
+    end
   end
 end
