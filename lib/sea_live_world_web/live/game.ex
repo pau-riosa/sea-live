@@ -165,7 +165,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
          %{"key" => step} = _keys
        ) do
     params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
-    do_get_new_position(arrow_keys(params, "penguin"))
+    do_get_new_position(arrow_keys(params, "penguin"), {x_old, y_old})
   end
 
   defp get_new_position(
@@ -180,14 +180,14 @@ defmodule SeaLiveWorldWeb.Live.Game do
          %{"key" => step} = _keys
        ) do
     params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
-    do_get_new_position(arrow_keys(params, "whale"))
+    do_get_new_position(arrow_keys(params, "whale"), {x_old, y_old})
   end
 
-  defp do_get_new_position({x, y})
+  defp do_get_new_position({{x, y}, direction}, old_coordinates)
        when x in 1..@default_width and y in 1..@default_height,
-       do: {x, y}
+       do: {{x, y}, direction}
 
-  defp do_get_new_position(old_direction), do: old_direction
+  defp do_get_new_position({_, direction}, old_coordinates), do: {old_coordinates, direction}
 
   defp arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old - 1, y_old}, "#{type}left"}
@@ -200,9 +200,6 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
   defp arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old, y_old + 1}, "#{type}down"}
-
-  defp arrow_keys(%{x_old: x_old, y_old: y_old, old_direction: old_direction} = _params, _type),
-    do: {{x_old, y_old}, old_direction}
 
   defp die_whale?(whale_eats?, counter) do
     cond do
