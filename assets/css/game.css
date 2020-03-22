@@ -18,15 +18,8 @@ h1 {
 .die_whale,
 .free {background-color: rgb(127,229,242);}
 .eatpenguin {background-color: rgb(255, 0, 0); background-image:url('/images/yummy.png');}
-
 .occ,
 .penguin
 {background-image:url('/images/penguin-baby.jpg'); background-color:  rgb(127,229,242)}
-
-.penguinup,
-.penguindown,
-.penguinright,
-.penguinleft {background-image:url('/images/penguin.png'); background-color:  rgb(127,229,242)}
-
 .whale
 {background-image:url('/images/whale.jpg'); background-size: cover ; background-color:  rgb(127,229,242)}

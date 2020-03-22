@@ -1,6 +1,9 @@
 <% left =  @whale_x * @field_size %>
 <% top =  @whale_y * @field_size %>
-<% style = if !@die_whale?, do: "
+<% penguin_style = "background-image:url('/images/penguin.png'); background-size: cover ; background-color:  rgb(127,229,242);
+"
+%>
+<% whale_style = if !@die_whale?, do: "
 background-image:url('/images/whale.png'); background-size: cover ; background-color:  rgb(127,229,242);
 ",
 else: "
@@ -29,11 +32,15 @@ background-color: rgb(127,229,242);
   </div>
 </div>
 <div class="field <%= @penguin_direction %>"
-                                      style="left: <%= @penguin_x * @field_size%>px; top: <%= @penguin_y * @field_size %>px;">
+     style="
+     <%= penguin_style %>
+     left: <%= @penguin_x * @field_size%>px;
+     top: <%= @penguin_y * @field_size %>px;"
+     >
 </div>
 <div class="field <%= @whale_direction %>"
                                             style="
-                                            <%= style %>
+                                            <%= whale_style %>
                                             left: <%= left %>px;
                                             top: <%= top %>px;
 "

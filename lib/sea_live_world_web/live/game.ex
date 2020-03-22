@@ -229,14 +229,28 @@ defmodule SeaLiveWorldWeb.Live.Game do
   defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}), do: counter + 1
   defp count_step(:whale, %{assigns: %{whale_counter: counter}}), do: counter + 1
 
+  defp get_arbitrary_coordinate(socket, x_axis) do
+    assigned_coordinates =
+      socket.assigns.board
+      |> Enum.map(fn {{x, y}, direction} ->
+        {x + x_axis, y}
+      end)
+      |> Enum.take_random(1)
+      |> List.first()
+  end
+
   # if 3 moves live, on third step tries to produce a child penguin
   defp add_penguin(socket, counter, coordinates) do
     cond do
       counter == 3 ->
         {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            {current_value, :penguin}
-          end)
+          Map.get_and_update(
+            socket.assigns.board,
+            get_arbitrary_coordinate(socket, socket.assigns.penguin_x),
+            fn current_value ->
+              {current_value, :penguin}
+            end
+          )
 
         new_board
 
@@ -250,9 +264,13 @@ defmodule SeaLiveWorldWeb.Live.Game do
     cond do
       counter == 8 ->
         {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
-          end)
+          Map.get_and_update(
+            socket.assigns.board,
+            get_arbitrary_coordinate(socket, socket.assigns.whale_x),
+            fn current_value ->
+              if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
+            end
+          )
 
         new_board
 
