@@ -3,18 +3,19 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
   alias SeaLiveWorldWeb.PageView
 
-  @default_width 20
-  @default_height 14
+  @default_width 15
+  @default_height 10
   @difficulty 12
+  @characters ["penguin", "whale"]
 
   def render(assigns) do
-    PageView.render("index.html", assigns)
+    PageView.render("game.html", assigns)
   end
 
   def mount(_params, assigns, socket) do
     socket =
       socket
-      |> new_board()
+      |> new_game()
 
     if connected?(socket) do
       {:ok, schedule_tick(socket)}
@@ -23,21 +24,23 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  def handle_event("penguin", key, socket) do
-    if socket.assigns.gameplay? do
-      {:noreply, penguin_step(socket, key)}
-    else
-      {:noreply, socket}
-    end
-  end
+  def handle_event("penguin", %{"key" => step} = key, socket) when step in ["r", "R"],
+    do: do_restart(socket)
 
-  def handle_event("whale", key, socket) do
-    if socket.assigns.gameplay? do
-      {:noreply, whale_step(socket, key)}
-    else
-      {:noreply, socket}
-    end
-  end
+  def handle_event("whale", %{"key" => step} = key, socket) when step in ["r", "R"],
+    do: do_restart(socket)
+
+  def handle_event("restart", key, socket), do: do_restart(socket)
+
+  def handle_event("penguin", key, %{assigns: %{character: "penguin"}} = socket),
+    do: {:noreply, penguin_step(socket, key)}
+
+  def handle_event("penguin", key, socket), do: {:noreply, socket}
+
+  def handle_event("whale", key, %{assigns: %{character: "whale"}} = socket),
+    do: {:noreply, whale_step(socket, key)}
+
+  def handle_event("whale", key, socket), do: {:noreply, socket}
 
   def handle_info(:tick, socket) do
     {:noreply, socket}
@@ -48,7 +51,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
     socket
   end
 
-  def new_board(socket) do
+  def new_game(socket) do
     assign(socket,
       board: board(),
       field_size: 50,
@@ -63,7 +66,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
       whale_counter: 0,
       die_counter: 4,
       die_whale?: false,
-      whale_eats?: false
+      whale_eats?: false,
+      character: select_character(@characters)
     )
   end
 
@@ -79,7 +83,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
     case random do
       1 -> :occ
       2 -> :penguin
-      4 -> :whale
+      3 -> :whale
       _ -> :free
     end
   end
@@ -98,7 +102,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
           penguin_x: x,
           penguin_y: y,
           penguin_direction: direction,
-          penguin_counter: counter
+          penguin_counter: counter,
+          character: "whale"
         )
 
       _ ->
@@ -171,7 +176,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
           whale_counter: counter,
           die_counter: die_counter,
           die_whale?: die_whale?,
-          whale_eats?: whale_eats?
+          whale_eats?: whale_eats?,
+          character: "penguin"
         )
     end
   end
@@ -274,5 +280,13 @@ defmodule SeaLiveWorldWeb.Live.Game do
       end
 
     {{x, y}, direction}
+  end
+
+  defp select_character(characters) do
+    Enum.take_random(characters, 1) |> List.first()
+  end
+
+  defp do_restart(socket) do
+    {:noreply, schedule_tick(new_game(socket))}
   end
 end

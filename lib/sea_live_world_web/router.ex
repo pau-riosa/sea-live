@@ -17,6 +17,7 @@ defmodule SeaLiveWorldWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/game", PageController, :game
   end
 
   scope "/", SeaLiveWorldWeb.Live do

@@ -7,9 +7,8 @@ else: "
 background-color: rgb(127,229,242);
 "
 %>
-<h1>Sea Live View Game</h1>
 <div class="row">
-  <div class="column"style="background-color: blue;">
+  <div class="column column-80">
     <div class="board">
       <%= for {{x,y}, type} <- @board do %>
         <div class="field <%= type %>" style="left: <%= x * @field_size %>px; top: <%= y * @field_size %>px;">
@@ -17,11 +16,22 @@ background-color: rgb(127,229,242);
       <% end %>
     </div>
   </div>
+  <div class="column column-20">
+    <div class="row">
+      <button class="button button-outline"  phx-click="restart">Restart</button>
+    </div>
+    <div class="row">
+      <button class="button button-outline" phx-window-keydown="<%= @character %>"  value="<%= @character %>">Next Step:
+
+        <%= @character %>
+      </button>
+    </div>
+  </div>
 </div>
-<div class="field <%= @penguin_direction %>"  phx-window-keydown="penguin"
+<div class="field <%= @penguin_direction %>"
                                       style="left: <%= @penguin_x * @field_size%>px; top: <%= @penguin_y * @field_size %>px;">
 </div>
-<div class="field <%= @whale_direction %>"  phx-window-keydown="whale"
+<div class="field <%= @whale_direction %>"
                                             style="
                                             <%= style %>
                                             left: <%= left %>px;
