@@ -24,10 +24,22 @@ background-color: rgb(127,229,242);
       <button class="button button-outline"  phx-click="restart">Restart</button>
     </div>
     <div class="row">
-      <button class="button button-outline" phx-window-keydown="<%= @character %>"  value="<%= @character %>">Next Step:
-
-        <%= @character %>
-      </button>
+      <button class="button button-outline" phx-window-keydown="<%= @character %>"  value="<%= @character %>">Next Step:<%= @character %></button>
+    </div>
+    <div class="row">
+      <div class="container">
+        controls
+        <ul>
+         <li> arrowup > up</li>
+         <li> arrowdown > down</li>
+         <li> arrowleft > left</li>
+         <li> arrowright > right</li>
+         <li> "q" > diagonal up: left</li>
+         <li> "w" > diagonal up: right</li>
+         <li> "a" > diagonal down: left</li>
+         <li> "s" > diagonal down: right</li>
+       </ul>
+      </div>
     </div>
   </div>
 </div>
