@@ -9,6 +9,8 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000/game`](http://localhost:4000) from your browser.
 
+# Requirements
+
 On the world is a table of size 15x10 (height x width) with cells equal in size to each other, the size of the table set by variables in the code so that you can quickly change the size.
 
 Each cell of the world can:
