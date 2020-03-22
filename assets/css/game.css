@@ -1,9 +1,8 @@
 /* Credits to for the icons
  * https://www.vectorstock.com/
  * */
-
-h1 {
- text-align: center;
+.section {
+border: 1px solid; padding: 20px; margin-top: 10px;
 }
 
 .field {
@@ -13,6 +12,9 @@ h1 {
   background-color: rgb(169,169,169);
   background-size: 50px;
   border: .5px solid 	rgb(211,211,211);
+}
+ul {
+list-style: none;
 }
 
 .die_whale,

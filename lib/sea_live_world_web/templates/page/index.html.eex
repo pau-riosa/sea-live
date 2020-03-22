@@ -1,0 +1,129 @@
+<div class="container">
+  <div class="row section">
+    <div class="container">
+      <div class="row" style="justify-content: center;">
+        <h2><strong>Jethro Paulo Riosa</strong></h2>
+      </div>
+      <div class="row" style="justify-content: center;">
+        <image src="<%= Routes.static_path(@conn, "/images/github.png") %>" width="25px" height="25px" />
+        <small style="line-height: 25px;"><a target="_blank" href="https://github.com/pau-riosa"style="text-decoration: none; color: inherit;">https://github.com/pau-riosa</a></small>
+        <image src="<%= Routes.static_path(@conn, "/images/gitlab.jpg") %>" width="25px" height="25px" />
+        <small style="line-height: 25px;"><a target="_blank" href="https://gitlab.com/jethro.riosa" style="text-decoration: none; color: inherit;">https://gitlab.com/jethro.riosa</a></small>
+      </div>
+      <div class="row" style="padding-top: 30px;">
+        <div class="column column-40">
+          <image src="<%= Routes.static_path(@conn, "/images/profile.jpeg") %>" width="350px" />
+        </div>
+        <div class="column column-60">
+          <h4><strong>Skills</strong></h4>
+          <ul>
+            <li>Elixir</li>
+            <li>Phoenix Framework</li>
+            <li>React JS / React Native</li>
+            <li>Vue JS</li>
+            <li>Git</li>
+            <li>Experience CI/CD Services [GitLab, GitHub]</li>
+            <li>Basic Experience with Docker, Amazon S3, Digital Ocean</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="row" style="padding-bottom: 30px; padding-top: 30px;">
+        <p> Hello, my name is <strong>Pau Riosa!</strong> I am a self taught software programmer who loves to ride my bike in different places, code from 8am to 3am every weekends and loves to discover new technologies that can help me to improve my skills and knowledge.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row section">
+    <div class="container">
+      <div class="row" style="justify-content: center;">
+        <h2><strong>Projects</strong></h2>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="row">
+            <h4><strong>Sea Live World</strong></h4>
+          </div>
+          <div class="row">
+            <p>
+              A Phoenix Live View game </br>
+              A world full of penguins and orcas (killer whales) battling each other for reproduction.</br>
+              <a href="/game" style="justify-content: center;" >START GAME!</a>
+            </p>
+          </div>
+          <div class="row">
+            <div class="column">
+              <h5><strong>Techstack</strong></h5>
+              <ul>
+                <li>Elixir</li>
+                <li>Phoenix Framework</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <a href="/game">
+            <image src="<%= Routes.static_path(@conn, "/images/game.png") %>" />
+          </a>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column">
+          <div class="row">
+            <h4><strong>Meline Woolbird</strong></h4>
+          </div>
+          <div class="row">
+            <p>
+              (Working in Progress) a reminder app for dentists.
+            </p>
+          </div>
+          <div class="row">
+            <div class="column">
+              <h5><strong>Techstack</strong></h5>
+              <ul>
+                <li>Elixir</li>
+                <li>Phoenix Framework</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <image src="<%= Routes.static_path(@conn, "/images/meline-woolbird.png") %>" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row section">
+    <div class="container">
+      <div class="row">
+        <div class="column">
+          <div class="row">
+            <h4><strong>Contact</strong></h4>
+          </div>
+          <div class="row">
+            <ul>
+              <li>jethro.riosa@gmail.com</li>
+              <li>09271217189 / 09267605987</li>
+              <li>https://www.linkedin.com/in/jethro-paulo-riosa</li>
+            </ul>
+          </div>
+        </div>
+        <div class="column">
+          <div class="row">
+            <h4><strong>Address</strong></h4>
+          </div>
+          <div class="row">
+            <ul>
+              <li>201 Sunnyville Village, Orchid St. Brgy. Fortune, Marikina City Philippines</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="container">
+
+    </div>
+  </div>
+</div>
