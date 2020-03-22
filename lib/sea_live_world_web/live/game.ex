@@ -60,6 +60,9 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
   def handle_event("whale", _key, socket), do: {:noreply, socket}
 
+  @doc """
+  ticks system
+  """
   def handle_info(:tick, socket) do
     {:noreply, socket}
   end
@@ -114,7 +117,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   end
 
   defp do_step(:penguin, socket, {x, y} = coordinates, direction, :free) do
-    counter = third_step(socket)
+    counter = count_step(:penguin, socket)
     board = add_penguin(socket, counter, coordinates)
 
     assign(socket,
@@ -134,7 +137,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
        do: socket
 
   defp do_step(:whale, socket, {x, y} = coordinates, direction, _result) do
-    counter = eight_step(socket)
+    counter = count_step(:whale, socket)
     board = eat_penguin(socket, counter, coordinates)
     die_counter = die_step(socket)
     whale_eats? = whale_eats?(socket, die_counter, coordinates)
@@ -183,12 +186,13 @@ defmodule SeaLiveWorldWeb.Live.Game do
     do_get_new_position(arrow_keys(params, "whale"), {x_old, y_old})
   end
 
-  defp do_get_new_position({{x, y}, direction}, old_coordinates)
+  defp do_get_new_position({{x, y}, direction}, _old_coordinates)
        when x in 1..@default_width and y in 1..@default_height,
        do: {{x, y}, direction}
 
   defp do_get_new_position({_, direction}, old_coordinates), do: {old_coordinates, direction}
 
+  # all creatures can move one cell within a neighborhood (up down, right, left, and diagonal)
   defp arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old - 1, y_old}, "#{type}left"}
 
@@ -201,6 +205,90 @@ defmodule SeaLiveWorldWeb.Live.Game do
   defp arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old, y_old + 1}, "#{type}down"}
 
+  defp arrow_keys(%{step: "q", x_old: x_old, y_old: y_old} = params, type),
+    do: {{x_old - 1, y_old - 1}, "#{type}diagonalupleft"}
+
+  defp arrow_keys(%{step: "a", x_old: x_old, y_old: y_old} = params, type),
+    do: {{x_old - 1, y_old + 1}, "#{type}diagonaldownleft"}
+
+  defp arrow_keys(%{step: "s", x_old: x_old, y_old: y_old} = params, type),
+    do: {{x_old + 1, y_old + 1}, "#{type}diagonaldownright"}
+
+  defp arrow_keys(%{step: "w", x_old: x_old, y_old: y_old} = params, type),
+    do: {{x_old + 1, y_old - 1}, "#{type}diagonalupright"}
+
+  defp arrow_keys(%{step: _step, x_old: x_old, y_old: y_old} = params, type),
+    do: {{x_old, y_old}, params.old_direction}
+
+  defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}) when counter >= 3,
+    do: 0
+
+  defp count_step(:whale, %{assigns: %{whale_counter: counter}}) when counter >= 8,
+    do: 0
+
+  defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}), do: counter + 1
+  defp count_step(:whale, %{assigns: %{whale_counter: counter}}), do: counter + 1
+
+  # if 3 moves live, on third step tries to produce a child penguin
+  defp add_penguin(socket, counter, coordinates) do
+    cond do
+      counter == 3 ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            {current_value, :penguin}
+          end)
+
+        new_board
+
+      true ->
+        socket.assigns.board
+    end
+  end
+
+  # if 8 moves live, on eight step tries to produce a child whale
+  defp add_whale(socket, counter, coordinates) do
+    cond do
+      counter == 8 ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
+          end)
+
+        new_board
+
+      true ->
+        socket.assigns.board
+    end
+  end
+
+  # checks if whale eats
+  defp whale_eats?(socket, counter, coordinates) do
+    case Map.get(socket.assigns.board, coordinates) do
+      res when res in [:penguin, :occ, :eatpenguin] and counter < 3 ->
+        true
+
+      _ ->
+        false
+    end
+  end
+
+  # whale eats penguin if field type is penguin and occ
+  defp eat_penguin(socket, counter, coordinates) do
+    case Map.get(socket.assigns.board, coordinates) do
+      res when res in [:penguin, :occ] ->
+        {_value, new_board} =
+          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
+            {current_value, :eatpenguin}
+          end)
+
+        new_board
+
+      _ ->
+        add_whale(socket, counter, coordinates)
+    end
+  end
+
+  # checks if whale died
   defp die_whale?(whale_eats?, counter) do
     cond do
       counter >= 3 && !whale_eats? ->
@@ -211,6 +299,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
+  # if orca doensn't eat any penguin within 3 turns,
+  # orca dies (disappears from the world, leaving the cell empty)
   defp die_step(socket) do
     cond do
       socket.assigns.whale_eats? ->
@@ -227,77 +317,17 @@ defmodule SeaLiveWorldWeb.Live.Game do
     end
   end
 
-  defp third_step(socket) do
-    if socket.assigns.penguin_counter >= 3, do: 0, else: socket.assigns.penguin_counter + 1
-  end
-
-  defp eight_step(socket) do
-    if socket.assigns.whale_counter >= 8, do: 0, else: socket.assigns.whale_counter + 1
-  end
-
-  defp add_penguin(socket, counter, coordinates) do
-    cond do
-      counter == 3 ->
-        {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            {current_value, :penguin}
-          end)
-
-        new_board
-
-      true ->
-        socket.assigns.board
-    end
-  end
-
-  defp add_whale(socket, counter, coordinates) do
-    cond do
-      counter == 8 ->
-        {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
-          end)
-
-        new_board
-
-      true ->
-        socket.assigns.board
-    end
-  end
-
-  defp whale_eats?(socket, counter, coordinates) do
-    case Map.get(socket.assigns.board, coordinates) do
-      res when res in [:penguin, :occ, :eatpenguin] and counter < 3 ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
-  defp eat_penguin(socket, counter, coordinates) do
-    case Map.get(socket.assigns.board, coordinates) do
-      res when res in [:penguin, :occ] ->
-        {_value, new_board} =
-          Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            {current_value, :eatpenguin}
-          end)
-
-        new_board
-
-      _ ->
-        add_whale(socket, counter, coordinates)
-    end
-  end
-
+  # random picks a character
   defp select_character(characters) do
     Enum.take_random(characters, 1) |> List.first()
   end
 
+  # restarts the game
   defp do_restart(socket) do
     {:noreply, schedule_tick(new_game(socket))}
   end
 
+  # schedules a tick
   defp schedule_tick(socket) do
     Process.send_after(self(), :tick, 1000)
     socket
