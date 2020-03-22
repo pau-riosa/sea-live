@@ -1,6 +1,6 @@
 defmodule SeaLiveWorldWeb.Live.Game do
   @moduledoc """
-  Sea World: a phoenix liveview game inspired by hippo_game_live by medallini
+  Sea World: a phoenix liveview game
   """
   use Phoenix.LiveView
 
@@ -112,8 +112,19 @@ defmodule SeaLiveWorldWeb.Live.Game do
   steps to make by penguin/whale in each turn
   """
   def step(character, socket, step) do
-    {coordinates, direction} = get_new_position(character, socket, step)
-    do_step(character, socket, coordinates, direction, Map.get(socket.assigns.board, coordinates))
+    case get_new_position(character, socket, step) do
+      res when res in [:invalid_key, :out_of_bound] ->
+        socket
+
+      {coordinates, direction} ->
+        do_step(
+          character,
+          socket,
+          coordinates,
+          direction,
+          Map.get(socket.assigns.board, coordinates)
+        )
+    end
   end
 
   defp do_step(:penguin, socket, {x, y} = coordinates, direction, :free) do
@@ -190,7 +201,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
        when x in 1..@default_width and y in 1..@default_height,
        do: {{x, y}, direction}
 
-  defp do_get_new_position({_, direction}, old_coordinates), do: {old_coordinates, direction}
+  defp do_get_new_position(:invalid_key, _directions), do: :invalid_key
+  defp do_get_new_position(_, _directions), do: :out_of_bound
 
   # all creatures can move one cell within a neighborhood (up down, right, left, and diagonal)
   defp arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
@@ -218,7 +230,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
     do: {{x_old + 1, y_old - 1}, "#{type}diagonalupright"}
 
   defp arrow_keys(%{step: _step, x_old: x_old, y_old: y_old} = params, type),
-    do: {{x_old, y_old}, params.old_direction}
+    do: :invalid_key
 
   defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}) when counter >= 3,
     do: 0
@@ -235,6 +247,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
       |> Enum.map(fn {{x, y}, direction} ->
         {x + x_axis, y}
       end)
+      |> Enum.filter(fn {x, y} -> x in 1..@default_width && y in 1..@default_height end)
       |> Enum.take_random(1)
       |> List.first()
   end
@@ -296,7 +309,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
       res when res in [:penguin, :occ] ->
         {_value, new_board} =
           Map.get_and_update(socket.assigns.board, coordinates, fn current_value ->
-            {current_value, :eatpenguin}
+            {current_value, :free}
           end)
 
         new_board
