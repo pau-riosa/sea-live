@@ -21,7 +21,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   @doc """
   mount new game
   """
-  def mount(_params, _assigns, socket) do
+  def mount(_params, assigns, socket) do
     socket =
       socket
       |> new_game()
@@ -70,9 +70,9 @@ defmodule SeaLiveWorldWeb.Live.Game do
   @doc """
   new game
   """
-  def new_game(socket) do
+  def new_game(socket, width \\ @default_width, height \\ @default_height) do
     assign(socket,
-      board: board(),
+      board: board(width, height),
       field_size: 50,
       gameplay?: true,
       penguin_direction: :penguindown,
@@ -100,8 +100,8 @@ defmodule SeaLiveWorldWeb.Live.Game do
   whale -> occupied by whale
   free -> space for each character
   """
-  def board() do
-    for x <- 1..@default_width, y <- 1..@default_height, into: %{} do
+  def board(width \\ @default_width, height \\ @default_height) do
+    for x <- 1..width, y <- 1..height, into: %{} do
       [random] = Enum.take_random(Enum.to_list(1..@difficulty), 1)
       type = field_type(random)
       {{x, y}, type}
@@ -167,32 +167,32 @@ defmodule SeaLiveWorldWeb.Live.Game do
     )
   end
 
-  defp get_new_position(
-         :penguin,
-         %{
-           assigns: %{
-             penguin_x: x_old,
-             penguin_y: y_old,
-             penguin_direction: old_direction
-           }
-         } = _socket,
-         %{"key" => step} = _keys
-       ) do
+  def get_new_position(
+        :penguin,
+        %{
+          assigns: %{
+            penguin_x: x_old,
+            penguin_y: y_old,
+            penguin_direction: old_direction
+          }
+        } = _socket,
+        %{"key" => step} = _keys
+      ) do
     params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
     do_get_new_position(arrow_keys(params, "penguin"), {x_old, y_old})
   end
 
-  defp get_new_position(
-         :whale,
-         %{
-           assigns: %{
-             whale_x: x_old,
-             whale_y: y_old,
-             whale_direction: old_direction
-           }
-         } = _socket,
-         %{"key" => step} = _keys
-       ) do
+  def get_new_position(
+        :whale,
+        %{
+          assigns: %{
+            whale_x: x_old,
+            whale_y: y_old,
+            whale_direction: old_direction
+          }
+        } = _socket,
+        %{"key" => step} = _keys
+      ) do
     params = %{x_old: x_old, y_old: y_old, old_direction: old_direction, step: step}
     do_get_new_position(arrow_keys(params, "whale"), {x_old, y_old})
   end
