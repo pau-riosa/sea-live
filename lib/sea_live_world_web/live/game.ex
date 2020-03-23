@@ -205,31 +205,31 @@ defmodule SeaLiveWorldWeb.Live.Game do
   defp do_get_new_position(_, _directions), do: :out_of_bound
 
   # all creatures can move one cell within a neighborhood (up down, right, left, and diagonal)
-  defp arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
+  def arrow_keys(%{step: "ArrowLeft", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old - 1, y_old}, "#{type}left"}
 
-  defp arrow_keys(%{step: "ArrowRight", x_old: x_old, y_old: y_old} = _params, type),
+  def arrow_keys(%{step: "ArrowRight", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old + 1, y_old}, "#{type}right"}
 
-  defp arrow_keys(%{step: "ArrowUp", x_old: x_old, y_old: y_old} = _params, type),
+  def arrow_keys(%{step: "ArrowUp", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old, y_old - 1}, "#{type}up"}
 
-  defp arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
+  def arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old, y_old + 1}, "#{type}down"}
 
-  defp arrow_keys(%{step: "q", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "q", x_old: x_old, y_old: y_old} = params, type),
     do: {{x_old - 1, y_old - 1}, "#{type}diagonalupleft"}
 
-  defp arrow_keys(%{step: "a", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "a", x_old: x_old, y_old: y_old} = params, type),
     do: {{x_old - 1, y_old + 1}, "#{type}diagonaldownleft"}
 
-  defp arrow_keys(%{step: "s", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "s", x_old: x_old, y_old: y_old} = params, type),
     do: {{x_old + 1, y_old + 1}, "#{type}diagonaldownright"}
 
-  defp arrow_keys(%{step: "w", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "w", x_old: x_old, y_old: y_old} = params, type),
     do: {{x_old + 1, y_old - 1}, "#{type}diagonalupright"}
 
-  defp arrow_keys(%{step: _step, x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: _step, x_old: x_old, y_old: y_old} = params, type),
     do: :invalid_key
 
   defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}) when counter >= 3,
