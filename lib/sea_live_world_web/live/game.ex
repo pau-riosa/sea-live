@@ -21,7 +21,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   @doc """
   mount new game
   """
-  def mount(_params, assigns, socket) do
+  def mount(_params, _assigns, socket) do
     socket =
       socket
       |> new_game()
@@ -217,19 +217,19 @@ defmodule SeaLiveWorldWeb.Live.Game do
   def arrow_keys(%{step: "ArrowDown", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old, y_old + 1}, "#{type}down"}
 
-  def arrow_keys(%{step: "q", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "q", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old - 1, y_old - 1}, "#{type}diagonalupleft"}
 
-  def arrow_keys(%{step: "a", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "a", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old - 1, y_old + 1}, "#{type}diagonaldownleft"}
 
-  def arrow_keys(%{step: "s", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "s", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old + 1, y_old + 1}, "#{type}diagonaldownright"}
 
-  def arrow_keys(%{step: "w", x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: "w", x_old: x_old, y_old: y_old} = _params, type),
     do: {{x_old + 1, y_old - 1}, "#{type}diagonalupright"}
 
-  def arrow_keys(%{step: _step, x_old: x_old, y_old: y_old} = params, type),
+  def arrow_keys(%{step: _step, x_old: _x_old, y_old: _y_old} = _params, _type),
     do: :invalid_key
 
   defp count_step(:penguin, %{assigns: %{penguin_counter: counter}}) when counter >= 3,
@@ -242,18 +242,17 @@ defmodule SeaLiveWorldWeb.Live.Game do
   defp count_step(:whale, %{assigns: %{whale_counter: counter}}), do: counter + 1
 
   defp get_arbitrary_coordinate(socket, x_axis) do
-    assigned_coordinates =
-      socket.assigns.board
-      |> Enum.map(fn {{x, y}, direction} ->
-        {x + x_axis, y}
-      end)
-      |> Enum.filter(fn {x, y} -> x in 1..@default_width && y in 1..@default_height end)
-      |> Enum.take_random(1)
-      |> List.first()
+    socket.assigns.board
+    |> Enum.map(fn {{x, y}, _direction} ->
+      {x + x_axis, y}
+    end)
+    |> Enum.filter(fn {x, y} -> x in 1..@default_width && y in 1..@default_height end)
+    |> Enum.take_random(1)
+    |> List.first()
   end
 
   # if 3 moves live, on third step tries to produce a child penguin
-  defp add_penguin(socket, counter, coordinates) do
+  defp add_penguin(socket, counter, _coordinates) do
     cond do
       counter == 3 ->
         {_value, new_board} =
@@ -273,7 +272,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
   end
 
   # if 8 moves live, on eight step tries to produce a child whale
-  defp add_whale(socket, counter, coordinates) do
+  defp add_whale(socket, counter, _coordinates) do
     cond do
       counter == 8 ->
         {_value, new_board} =
@@ -281,7 +280,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
             socket.assigns.board,
             get_arbitrary_coordinate(socket, socket.assigns.whale_x),
             fn current_value ->
-              if current_value not in [:occ, :eatpenguin, :whale], do: {current_value, :whale}
+              if current_value not in [:occ, :penguin, :whale], do: {current_value, :whale}
             end
           )
 
@@ -312,7 +311,9 @@ defmodule SeaLiveWorldWeb.Live.Game do
             {current_value, :free}
           end)
 
-        new_board
+        assigns = %{socket.assigns | board: new_board}
+        socket = %{socket | assigns: assigns}
+        add_whale(socket, counter, coordinates)
 
       _ ->
         add_whale(socket, counter, coordinates)
@@ -360,7 +361,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
 
   # schedules a tick
   defp schedule_tick(socket) do
-    Process.send_after(self(), :tick, 1000)
+    Process.send_after(self(), :tick, 30000)
     socket
   end
 

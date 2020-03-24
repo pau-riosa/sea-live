@@ -18,7 +18,7 @@ defmodule SeaLiveWorldWeb.Live.GameTest do
     {1, 3} => :penguin,
     {2, 1} => :free,
     {2, 2} => :occ,
-    {2, 3} => :penguin,
+    {2, 3} => :free,
     {3, 1} => :penguin,
     {3, 2} => :free,
     {3, 3} => :free
@@ -46,21 +46,215 @@ defmodule SeaLiveWorldWeb.Live.GameTest do
     {:ok, socket: socket}
   end
 
-  describe "new_game" do
+  describe "game" do
     # initialize the game
     setup [:new_game]
 
+    test "skip" do
+      board = %{
+        {1, 1} => :whale,
+        {2, 1} => :occ,
+        {3, 1} => :penguin,
+        {1, 2} => :penguin,
+        {2, 2} => :free,
+        {3, 2} => :penguin,
+        {1, 3} => :penguin,
+        {2, 3} => :whale,
+        {3, 3} => :occ
+      }
+
+      assigns = %{
+        board: board,
+        penguin_direction: :penguindown,
+        penguin_x: 2,
+        penguin_y: 2
+      }
+
+      socket = %Phoenix.LiveView.Socket{assigns: assigns, endpoint: @endpoint}
+
+      skip(:penguin, socket)
+      |> raise
+    end
+
+    defp skip(:penguin, socket) do
+      socket.assigns.board
+      |> Map.to_list()
+      |> check_neighbors_if_empty(socket.assigns.penguin_x, socket.assigns.penguin_y, [])
+    end
+
+    defp check_neighbors_if_empty([], _x, _y, acc), do: acc
+
+    defp check_neighbors_if_empty([head_cell | tail_cells], x, y, acc) do
+      new_head =
+        case head_cell do
+          {{hx, hy}, direction}
+          when hx == x - 1 and hy == y and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x + 1 and hy == y and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x - 1 and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x - 1 and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x + 1 and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x + 1 and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
+            :skip
+
+          {{hx, hy}, direction}
+          when hx == x and hy == y and direction in [:whale, :penguin, :occ, :free] ->
+            :skip
+
+          _ ->
+            :turn
+        end
+
+      acc = acc ++ [new_head]
+      check_neighbors_if_empty(tail_cells, x, y, acc)
+    end
+
     test "flow", %{socket: socket} do
-      # current_position of penguin
+      # current position of penguin
       assert %{assigns: %{penguin_x: x, penguin_y: y, penguin_direction: :penguindown}} = socket
       assert {1, 1} = {x, y}
 
-      # first move penguin
-      move_socket = Game.step(:penguin, socket, %{"key" => "ArrowRight"})
-      assert %{assigns: %{character: character, penguin_x: new_x, penguin_y: new_y}} = move_socket
+      # current_move: penguin going right
+      # next_move: whale
+      socket = Game.step(:penguin, socket, %{"key" => "ArrowRight"})
+
+      assert %{
+               assigns: %{
+                 character: character,
+                 penguin_x: new_x,
+                 penguin_y: new_y,
+                 penguin_counter: counter
+               }
+             } = socket
 
       assert {x, y} != {new_x, new_y}
+      assert {new_x, new_y} == {2, 1}
       assert character == "whale"
+      assert counter == 1
+
+      # current position of whale
+      # next_move: whale
+      assert %{
+               assigns: %{
+                 whale_x: x,
+                 whale_y: y,
+                 whale_direction: :whaledown,
+                 whale_counter: counter,
+                 die_counter: die_counter
+               }
+             } = socket
+
+      assert {3, 3} = {x, y}
+      assert counter == 0
+      assert die_counter == 4
+
+      # current_move: whale going up
+      # next_move: penguin
+      socket = Game.step(:whale, socket, %{"key" => "ArrowUp"})
+
+      assert %{
+               assigns: %{
+                 character: character,
+                 whale_x: new_x,
+                 whale_y: new_y,
+                 whale_direction: direction,
+                 whale_counter: counter,
+                 die_counter: die_counter
+               }
+             } = socket
+
+      assert {x, y} != {new_x, new_y}
+      assert {new_x, new_y} == {3, 2}
+      assert counter == 1
+      assert die_counter == 0
+      assert character == "penguin"
+      assert direction == "whaleup"
+
+      # current_move: penguin going diagonal down left
+      # next_move: whale
+      socket = Game.step(:penguin, socket, %{"key" => "a"})
+
+      assert %{
+               assigns: %{
+                 character: character,
+                 penguin_x: new_x,
+                 penguin_y: new_y,
+                 penguin_direction: direction,
+                 penguin_counter: counter
+               }
+             } = socket
+
+      assert {new_x, new_y} == {1, 2}
+      assert character == "whale"
+      assert counter == 2
+      assert direction == "penguindiagonaldownleft"
+
+      # current_move: whale going up
+      # next_move: penguin
+      socket = Game.step(:whale, socket, %{"key" => "ArrowUp"})
+
+      assert %{
+               assigns: %{
+                 character: character,
+                 whale_x: new_x,
+                 whale_y: new_y,
+                 whale_direction: direction,
+                 whale_counter: counter,
+                 die_counter: die_counter,
+                 board: board
+               }
+             } = socket
+
+      assert {new_x, new_y} == {3, 1}
+      assert counter == 2
+      assert die_counter == 1
+      assert character == "penguin"
+      assert direction == "whaleup"
+      # scenario: whale eats up the penguin and free the penguin type field
+      assert :free = Map.get(board, {new_x, new_y})
+
+      # current_move: penguin going diagonal down right
+      # next_move: whale
+      socket = Game.step(:penguin, socket, %{"key" => "s"})
+
+      assert %{
+               assigns: %{
+                 character: character,
+                 penguin_x: new_x,
+                 penguin_y: new_y,
+                 penguin_direction: direction,
+                 penguin_counter: counter,
+                 board: board
+               }
+             } = socket
+
+      assert character == "whale"
+      assert counter == 3
+      assert direction == "penguindiagonaldownright"
+      # scenario: penguin lives in 3 turn, reproduce arbitrarily and takes 1 coordinate randomly
+      assert board != @board
     end
   end
 
