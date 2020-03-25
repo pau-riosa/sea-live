@@ -53,10 +53,10 @@ defmodule SeaLiveWorldWeb.Live.GameTest do
     test "skip" do
       board = %{
         {1, 1} => :whale,
-        {2, 1} => :occ,
+        {2, 1} => :free,
         {3, 1} => :penguin,
         {1, 2} => :penguin,
-        {2, 2} => :free,
+        {2, 2} => :whale,
         {3, 2} => :penguin,
         {1, 3} => :penguin,
         {2, 3} => :whale,
@@ -72,64 +72,175 @@ defmodule SeaLiveWorldWeb.Live.GameTest do
 
       socket = %Phoenix.LiveView.Socket{assigns: assigns, endpoint: @endpoint}
 
-      skip(:penguin, socket)
+      skip(board, socket.assigns.penguin_x, socket.assigns.penguin_y)
       |> raise
     end
 
-    defp skip(:penguin, socket) do
-      socket.assigns.board
-      |> Map.to_list()
-      |> check_neighbors_if_empty(socket.assigns.penguin_x, socket.assigns.penguin_y, [])
+    defp skip(board, x, y) do
+      compute(x, y)
+      |> Enum.sort()
+      |> raise
+
+      # board
+      # |> Map.to_list()
+      # |> Enum.all?(fn field ->
+      #   check_neighbor_if_empty(field, x, y)
+      # end)
     end
 
-    defp check_neighbors_if_empty([], _x, _y, acc), do: acc
-
-    defp check_neighbors_if_empty([head_cell | tail_cells], x, y, acc) do
-      new_head =
-        case head_cell do
-          {{hx, hy}, direction}
-          when hx == x - 1 and hy == y and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x + 1 and hy == y and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x - 1 and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x - 1 and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x + 1 and hy == y + 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x + 1 and hy == y - 1 and direction in [:whale, :penguin, :occ] ->
-            :skip
-
-          {{hx, hy}, direction}
-          when hx == x and hy == y and direction in [:whale, :penguin, :occ, :free] ->
-            :skip
-
-          _ ->
-            :turn
-        end
-
-      acc = acc ++ [new_head]
-      check_neighbors_if_empty(tail_cells, x, y, acc)
+    defp compute(x, y) do
+      [
+        going_left(x, y),
+        going_right(x, y),
+        going_up(x, y),
+        going_down(x, y),
+        going_diagonal_up_left(x, y),
+        going_diagonal_down_left(x, y),
+        going_diagonal_down_right(x, y),
+        going_diagonal_up_right(x, y)
+      ]
     end
+
+    defp going_left(x, y), do: {x - 1, y}
+    defp going_right(x, y), do: {x + 1, y}
+    defp going_up(x, y), do: {x, y - 1}
+    defp going_down(x, y), do: {x, y + 1}
+    defp going_diagonal_up_left(x, y), do: {x - 1, y - 1}
+    defp going_diagonal_down_left(x, y), do: {x - 1, y + 1}
+    defp going_diagonal_down_right(x, y), do: {x + 1, y + 1}
+    defp going_diagonal_up_right(x, y), do: {x + 1, y - 1}
+
+    defp check_neighbor_if_empty(field, x, y) do
+      fn
+        {{hx, hy}, type} = field
+        when hx == x - 1 and hy == y and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x + 1 and hy == y and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x - 1 and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x - 1 and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x + 1 and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x + 1 and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+          true
+
+        {{hx, hy}, type} = field
+        when hx == x + 1 and hy == y and type == :free ->
+          false
+
+        field ->
+          false
+      end
+    end
+
+    # defp check_neighbors_if_empty(board, x, y) do
+    #   Enum.find(board, fn
+    #     {{hx, hy}, type}
+    #     when hx == x - 1 and hy == y and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x + 1 and hy == y and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x - 1 and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x - 1 and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x + 1 and hy == y + 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x + 1 and hy == y - 1 and type in [:whale, :occ, :penguin] ->
+    #       true
+
+    #     {{hx, hy}, type}
+    #     when hx == x and hy == y and type == :free ->
+    #       true
+    #   end)
+    # end
+
+    # defp check_neighbors_if_empty([], _x, _y, acc), do: acc
+
+    # defp check_neighbors_if_empty([head_cell | tail_cells], x, y, acc) do
+    #   new_head =
+    #     case head_cell do
+    #       {{hx, hy}, type}
+    #       when hx == x - 1 and hy == y and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x + 1 and hy == y and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x and hy == y - 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x and hy == y + 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x - 1 and hy == y - 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x - 1 and hy == y + 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x + 1 and hy == y + 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x + 1 and hy == y - 1 and type != :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, type}
+    #       when hx == x and hy == y and type == :free ->
+    #         {{hx, hy}, :skip}
+
+    #       {{hx, hy}, _} ->
+    #         {{hx, hy}, :turn}
+    #     end
+
+    #   acc = acc ++ [new_head]
+    #   check_neighbors_if_empty(tail_cells, x, y, acc)
+    # end
 
     test "flow", %{socket: socket} do
       # current position of penguin

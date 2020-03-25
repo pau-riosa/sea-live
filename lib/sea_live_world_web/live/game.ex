@@ -141,13 +141,13 @@ defmodule SeaLiveWorldWeb.Live.Game do
     )
   end
 
-  defp do_step(:penguin, socket, _coordinates, _direction, _result), do: socket
+  defp do_step(:penguin, socket, _coordinates, _direction, _field_type), do: socket
 
-  defp do_step(:whale, socket, _coordinates, _direction, result)
-       when result in [:whale, :eatpenguin],
+  defp do_step(:whale, socket, _coordinates, _direction, field_type)
+       when field_type in [:whale, :eatpenguin],
        do: socket
 
-  defp do_step(:whale, socket, {x, y} = coordinates, direction, _result) do
+  defp do_step(:whale, socket, {x, y} = coordinates, direction, _field_type) do
     counter = count_step(:whale, socket)
     board = eat_penguin(socket, counter, coordinates)
     die_counter = die_step(socket)
@@ -260,7 +260,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
             socket.assigns.board,
             get_arbitrary_coordinate(socket, socket.assigns.penguin_x),
             fn current_value ->
-              {current_value, :penguin}
+              if current_value not in [:occ, :whale], do: {current_value, :penguin}
             end
           )
 
