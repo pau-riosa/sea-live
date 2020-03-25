@@ -260,7 +260,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
             socket.assigns.board,
             get_arbitrary_coordinate(socket, socket.assigns.penguin_x),
             fn current_value ->
-              if current_value not in [:occ, :whale], do: {current_value, :penguin}
+              if current_value not in [:occ, :whale, nil], do: {current_value, :penguin}
             end
           )
 
@@ -280,7 +280,7 @@ defmodule SeaLiveWorldWeb.Live.Game do
             socket.assigns.board,
             get_arbitrary_coordinate(socket, socket.assigns.whale_x),
             fn current_value ->
-              if current_value not in [:occ, :penguin, :whale], do: {current_value, :whale}
+              if current_value not in [:occ, :penguin, :whale, nil], do: {current_value, :whale}
             end
           )
 
