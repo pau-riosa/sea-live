@@ -1,7 +1,7 @@
 defmodule SeaLiveWorldWeb.UserSocket do
   use Phoenix.Socket
 
-  ## Channels
+  # Channels
   # channel "room:*", SeaLiveWorldWeb.RoomChannel
 
   # Socket params are passed from the client and can

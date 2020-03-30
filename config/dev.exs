@@ -60,7 +60,7 @@ config :sea_live_world, SeaLiveWorldWeb.Endpoint,
     patterns: [
       ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/sea_live_world_web/(live|views)/.*(ex)$",
+      ~r"lib/sea_live_world_web/(channels|live|views)/.*(ex)$",
       ~r"lib/sea_live_world_web/templates/.*(eex)$"
     ]
   ]

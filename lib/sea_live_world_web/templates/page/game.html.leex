@@ -1,60 +1,11 @@
-<% left =  @whale_x * @field_size %>
-<% top =  @whale_y * @field_size %>
-<% penguin_style = "background-image:url('/images/penguin.png'); background-size: cover ; background-color:  rgb(127,229,242);
-"
-%>
-<% whale_style = if !@die_whale?, do: "
-background-image:url('/images/whale.png'); background-size: cover ; background-color:  rgb(127,229,242);
-",
-else: "
-background-color: rgb(127,229,242);
-"
-%>
 <div class="row">
-  <div class="column column-80">
-    <div class="board">
-      <%= for {{x,y}, type} <- @board do %>
-        <div class="field <%= type %>" style="left: <%= x * @field_size %>px; top: <%= y * @field_size %>px;">
-        </div>
-      <% end %>
-    </div>
+  <div class="column column-80" style="background-color: red">
   </div>
-  <div class="column column-20">
-    <div class="row">
-      <button class="button button-outline"  phx-click="restart">Restart</button>
-    </div>
-    <div class="row">
-      <button class="button button-outline" phx-window-keydown="<%= @character %>"  value="<%= @character %>">Next Step:<%= @character %></button>
-    </div>
-    <div class="row">
-      <div class="container">
-        controls
-        <ul>
-         <li> arrowup > up</li>
-         <li> arrowdown > down</li>
-         <li> arrowleft > left</li>
-         <li> arrowright > right</li>
-         <li> "q" > diagonal up: left</li>
-         <li> "w" > diagonal up: right</li>
-         <li> "a" > diagonal down: left</li>
-         <li> "s" > diagonal down: right</li>
-       </ul>
-      </div>
-    </div>
+  <div class="column column-20" style="background-color: yellow">
+    <h2>PLAYERS</h2> 
+    <%= form_for :sea_world_game, "#", [phx_submit: :start_game], fn f -> %>
+      <%= text_input f, :player, placeholder: "write your name here..." %>
+      <%= submit "submit" %>
+    <% end %> 
   </div>
-</div>
-<div class="field <%= @penguin_direction %>"
-     style="
-     <%= penguin_style %>
-     left: <%= @penguin_x * @field_size%>px;
-     top: <%= @penguin_y * @field_size %>px;"
-     >
-</div>
-<div class="field <%= @whale_direction %>"
-                                            style="
-                                            <%= whale_style %>
-                                            left: <%= left %>px;
-                                            top: <%= top %>px;
-"
-                                            >
 </div>
